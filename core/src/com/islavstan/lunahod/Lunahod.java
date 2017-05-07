@@ -5,6 +5,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.assets.loaders.I18NBundleLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
@@ -16,8 +17,11 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
+import com.badlogic.gdx.utils.I18NBundle;
 import com.boontaran.games.StageGame;
 import com.islavstan.lunahod.utils.GameCallback;
+
+import java.util.Locale;
 
 public class Lunahod extends Game {
 
@@ -29,6 +33,8 @@ public class Lunahod extends Game {
 	public static final int SHARE = 6;
 
 	private GameCallback gameCallback;
+	private I18NBundle bundle; //класс для выбора ресурсов для локализации
+	private String pathToAtlas;
 
 	public Lunahod(GameCallback gameCallback) {
 		this.gameCallback = gameCallback;
@@ -48,10 +54,19 @@ public class Lunahod extends Game {
 		StageGame.setAppSize(800, 400);
 		//перехватываем кнопку назад на устройстве
 		Gdx.input.setCatchBackKey(true);
+
+		//определяем локаль устройства для выбора языка
+          Locale locale = Locale.getDefault();
+		bundle = I18NBundle.createBundle(Gdx.files.internal("MyBundle"), locale);//в зависимости от локали берём нужный bundle
+		pathToAtlas = bundle.get("path");
+
+
+
+
 		loadingAssets = true;
 		assetManager = new AssetManager();
 		//загружаем атлас
-		assetManager.load("images_ru/pack.atlas", TextureAtlas.class);
+		assetManager.load(pathToAtlas, TextureAtlas.class);
 		//загружаем музыку и звуки
 		assetManager.load("musics/music1.ogg", Music.class);
 		assetManager.load("musics/level_failed.ogg", Music.class);
@@ -100,7 +115,7 @@ public class Lunahod extends Game {
 
 	private void onAssetsLoaded() {
 		// получаем загруженные ресурсы и шрифты
-		atlas = assetManager.get("images_ru/pack.atlas", TextureAtlas.class);
+		atlas = assetManager.get(pathToAtlas, TextureAtlas.class);
 		font40 = assetManager.get("font40.ttf", BitmapFont.class);
 	}
 
