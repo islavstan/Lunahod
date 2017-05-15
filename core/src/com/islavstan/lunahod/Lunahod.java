@@ -19,6 +19,10 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.boontaran.games.StageGame;
+import com.islavstan.lunahod.level.LevelList;
+import com.islavstan.lunahod.media.Media;
+import com.islavstan.lunahod.screens.Intro;
+import com.islavstan.lunahod.utils.Data;
 import com.islavstan.lunahod.utils.GameCallback;
 
 import java.util.Locale;
@@ -35,6 +39,9 @@ public class Lunahod extends Game {
 	private GameCallback gameCallback;
 	private I18NBundle bundle; //класс для выбора ресурсов для локализации
 	private String pathToAtlas;
+	private Intro intro;
+
+	private LevelList levelList;
 
 	public Lunahod(GameCallback gameCallback) {
 		this.gameCallback = gameCallback;
@@ -47,6 +54,9 @@ public class Lunahod extends Game {
 	public static TextureAtlas atlas;
 	//для работы с шрифтом
 	public static BitmapFont font40;
+
+	public static Media media;
+	public static Data data;
 
 	@Override
 	public void create() {
@@ -89,6 +99,10 @@ public class Lunahod extends Game {
 
 		assetManager.load("font40.ttf", BitmapFont.class, sizeParams);
 
+		media = new Media(assetManager);
+
+		data = new Data();
+
 	}
 
 	@Override
@@ -117,10 +131,70 @@ public class Lunahod extends Game {
 		// получаем загруженные ресурсы и шрифты
 		atlas = assetManager.get(pathToAtlas, TextureAtlas.class);
 		font40 = assetManager.get("font40.ttf", BitmapFont.class);
+		showIntro();
 	}
 
 
 	private void exitApp() {
 		Gdx.app.exit();
 	}
+
+
+
+	private void showIntro() {
+		intro = new Intro();
+		setScreen(intro);//активируем экран
+
+		intro.setCallback(new StageGame.Callback() {//cлушатель нажатий
+			@Override
+			public void call(int code) {
+				if (code == Intro.ON_PLAY) {
+					showLevelList();//показывать список уровней
+					hideIntro();
+				} else if (code == Intro.ON_BACK) {
+					exitApp();
+				}
+			}
+		});
+
+		media.playMusic("music1.ogg", true);
+	}
+	private void hideIntro() {
+		intro = null;
+	}
+
+	private void showLevelList() {
+		levelList = new LevelList();
+		setScreen(levelList);
+
+		levelList.setCallback(new StageGame.Callback() {
+			@Override
+			public void call(int code) {
+
+				if (code == LevelList.ON_BACK) {
+					showIntro();
+					hideLevelList();
+				} else if (code == LevelList.ON_LEVEL_SELECTED) {
+					//showLevel();
+					hideLevelList();
+				} else if(code == LevelList.ON_OPEN_MARKET) {
+					gameCallback.sendMessage(OPEN_MARKET);
+				} else if (code == LevelList.ON_SHARE) {
+					gameCallback.sendMessage(SHARE);
+				}
+
+			}
+		});
+
+		gameCallback.sendMessage(SHOW_BANNER);
+		media.playMusic("music1.ogg", true);
+	}
+
+	private void hideLevelList() {
+		levelList = null;
+		gameCallback.sendMessage(HIDE_BANNER);
+	}
+
+
 }
+
